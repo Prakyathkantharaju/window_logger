@@ -37,15 +37,25 @@ def check_table(cursor: sqlite3.Cursor, database: sqlite3.Connection, name: str)
     except sqlite3.OperationalError:
         create_table(cursor, database, name)
 
-def arange_data(data: Dict[str, Any]) -> Tuple[str, str, int]:
+def arange_data(data: Dict[str, Any]) -> Tuple[str, str, str, int]:
     """
     Arrange the data in the correct format.
     """
     time = datetime.datetime.now().strftime("%H:%M:%S")
-    window_name = data['name']
-    window_type = data['type']
-    window_id = data['id']
-    return time, window_name, window_type, window_id
+    window_name = data['title']
+    window_id = data['xid']
+    window_meta = data['title']
+    return time, window_name, window_meta, window_id
+
+
+def add_data(cursor: sqlite3.Cursor, database: sqlite3.Connection, data: Dict[str, Any], table_name: str) -> None:
+    """
+    Add the data to the database.
+    """
+    time, window_name, window_type, window_id = arange_data(data)
+    check_table(cursor, database, table_name)
+    cursor.execute(f'INSERT INTO {table_name} VALUES (?, ?, ?, ?)', (time, window_name, window_type, window_id))
+    con.commit()
 
 
 date = datetime.datetime.now().strftime("%Y%m%d")
@@ -62,4 +72,6 @@ get_window.get_window_name(get_window.get_active_window()[0])
 get_window.handle_change(get_window.last_seen)
 
 while True:  # next_event() sleeps until we get an event
-    get_window.handle_xevent(get_window.disp.next_event())
+    if get_window.handle_xevent(get_window.disp.next_event()):
+        add_data(c, con, get_window.last_seen, date)
+

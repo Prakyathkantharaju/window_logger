@@ -147,6 +147,8 @@ class GetWindow():
 
         if changed:
             self.handle_change(self.last_seen)
+            return True
+        return False
 
 
     def handle_change(self, new_state: dict):
