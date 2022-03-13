@@ -3,6 +3,7 @@ from Xlib import X
 from typing import Any, Dict, Optional, Tuple, Union  # noqa
 import sqlite3
 import datetime
+import yaml
 
 from get_window import GetWindow
 
@@ -44,8 +45,26 @@ def arange_data(data: Dict[str, Any]) -> Tuple[str, str, str, int]:
     time = datetime.datetime.now().strftime("%H:%M:%S")
     window_name = data['title']
     window_id = data['xid']
-    window_meta = data['title']
+    window_meta = get_meta_data(data)
     return time, window_name, window_meta, window_id
+
+def get_meta_data(data: Dict[str, Any]) -> str:
+    """
+    Get the meta data from the window.
+    """
+    with open('categories.yml', 'r') as file:
+        category = yaml.safe_load(file)
+    for key, value in category.items():
+        if value is None or data['title'] is None:
+            continue
+        print('key: ', key)
+        result = [key if c in data['title'] else '' for c in value]
+        if len(result[0]) > 0:
+            return result[0]
+
+    if data['title'] is not  None:
+        print('YouTube' in data['title'])
+    return 'Other'
 
 
 def add_data(cursor: sqlite3.Cursor, database: sqlite3.Connection, data: Dict[str, Any], table_name: str) -> None:
@@ -53,6 +72,7 @@ def add_data(cursor: sqlite3.Cursor, database: sqlite3.Connection, data: Dict[st
     Add the data to the database.
     """
     time, window_name, window_type, window_id = arange_data(data)
+    print(f'{time} {window_name} {window_type} {window_id}')
     check_table(cursor, database, table_name)
     cursor.execute(f'INSERT INTO {table_name} VALUES (?, ?, ?, ?)', (time, window_name, window_type, window_id))
     con.commit()
