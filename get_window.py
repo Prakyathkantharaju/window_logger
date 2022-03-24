@@ -85,9 +85,9 @@ class GetWindow():
 
             self.last_seen['xid'] = win_id
             with self.window_obj(win_id) as new_win:
+                print(new_win)
                 if new_win:
                     new_win.change_attributes(event_mask=X.PropertyChangeMask)
-                    print(new_win.display.allocate_resource_id())
 
         return win_id, focus_changed
 
